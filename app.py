@@ -3,7 +3,18 @@ from bs4 import BeautifulSoup
 import time
 import pandas as pd
 import sqlite3
+from telegram import Bot
+import os
+from dotenv import load_dotenv
+import asyncio
 
+load_dotenv()
+
+# Configuração do bot do Telegram
+
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+bot = Bot(token = TOKEN)
 
 
 def fetch_page():
@@ -51,33 +62,47 @@ def save_to_database(conn, produto_info):
 
 def get_max_price(conn):
      cursor = conn.cursor()
-     cursor.execute("SELECT MAX(old_price), timestamp FROM prices")
+     cursor.execute("SELECT old_price, timestamp FROM prices ORDER BY timestamp DESC LIMIT 1")
      result =cursor.fetchone()
-     return result[0], result[1]
+     if result and result[0] is not None:
+        return result[0], result[1]
+     return None, None
 
-if __name__ == "__main__":
+async def send_telegram_message(text):
+     await bot.send_message(chat_id=CHAT_ID, text=text)
+
+async def main():
 
     conn = create_connection()
     setup_database(conn)
-    #df = pd.DataFrame()
+    max_price, max_price_timestamp = get_max_price(conn)
+    try:
+                             
+            while True:
+                page_content = fetch_page()
+                produto_info = parse_page(page_content)
+                current_price = produto_info['old_price']
+                
+                # Comparação de preços
+                if max_price is None or current_price > max_price:
+                        message = f"Novo preço maior detectado: {current_price}"
+                        print(message)
+                        await send_telegram_message(message)
+                        max_price = current_price
+                        max_price_timestamp = produto_info['timestamp']
+                else:
+                        message = f"O maior preço registrado é {max_price} em {max_price_timestamp}"
+                        print(message)
+                        await send_telegram_message(message)
 
-    while True:
-         page_content = fetch_page()
-         produto_info = parse_page(page_content)
+                save_to_database(conn, produto_info)
+                #print("Dados salvos no banco:", produto_info)
+                await asyncio.sleep(10)
 
-         max_price, max_timestamp = get_max_price(conn)
+    except KeyboardInterrupt:
+        print("Parando a execução...")
+    finally:
+        conn.close()
 
-         corrent_price = produto_info['old_price']
-         max_price_timestamp = None
-
-         if corrent_price > max_price:
-              print("Preço maior detectado")
-              max_price = corrent_price
-              max_price_timestamp = produto_info['timestamp']
-         else:
-              print(f"O maior preço registrado é {max_price} em {max_timestamp}")
-
-    
-         save_to_database(conn, produto_info)
-         print("Dados Salvo: ", produto_info)
-         time.sleep(10)
+# Executa o loop assíncrono
+asyncio.run(main())
