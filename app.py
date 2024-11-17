@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import pandas as pd
+import sqlite3
 
 
 
@@ -25,16 +26,38 @@ def parse_page(html):
         'timestamp': timestamp
     }
 
-def save_to_dataframe(product_inf, df):
-     new_row = pd.DataFrame([product_inf])
-     df = pd.concat([df, new_row], ignore_index=True)
-     return df
+def create_connection(db_name='robo_aspirador.db'):
+     """Cria uma conexao com o banco de dados SQLite."""
+     conn = sqlite3.connect(db_name)
+     return conn
+
+def setup_database(conn):
+     """Cria a tabela de preços se ela não existir"""
+     cursor = conn.cursor()
+     cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS prices (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_name TEXT,
+                    old_price INTEGER,
+                    timestamp TEXT
+                    )
+                ''')
+     conn.commit()
+
+def save_to_database(conn, produto_info):
+     new_row = pd.DataFrame([produto_info])
+     #df = pd.concat([df, new_row], ignore_index=True)
+     new_row.to_sql('prices', conn, if_exists='append', index=False)
+
 if __name__ == "__main__":
-    df = pd.DataFrame()
+
+    conn = create_connection()
+    setup_database(conn)
+    #df = pd.DataFrame()
 
     while True:
          page_content = fetch_page()
-         produto_inf = parse_page(page_content)
-         df = save_to_dataframe(produto_inf, df)
-         print(df)
+         produto_info = parse_page(page_content)
+         save_to_database(conn, produto_info)
+         print("Dados Salvo: ", produto_info)
          time.sleep(10)
