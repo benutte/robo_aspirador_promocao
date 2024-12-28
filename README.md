@@ -1,6 +1,4 @@
-# grupo_promocao
-
-Grupo Promoção
+# Grupo Promoção
 
 Este programa tem como objetivo monitorar o preço de um produto em um site, neste caso, da Amazon, e enviar notificações via Telegram com os preços atual e anterior.
 
