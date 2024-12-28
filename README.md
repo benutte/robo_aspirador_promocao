@@ -23,19 +23,19 @@ Este programa tem como objetivo monitorar o preço de um produto em um site, nes
 
 📂 Estrutura do Projeto
 
-grupo_promocao/
-├── app.py              # Código principal do programa
-├── requirements.txt    # Dependências do projeto
-├── .env                # Variáveis de ambiente (não deve ser commitado)
-├── README.md           # Documentação do projeto
-└── robo_aspirador.db   # Banco de dados SQLite para armazenamento dos preços
+    grupo_promocao/
+    ├── app.py              # Código principal do programa
+    ├── requirements.txt    # Dependências do projeto
+    ├── .env                # Variáveis de ambiente (não deve ser commitado)
+    ├── README.md           # Documentação do projeto
+    └── robo_aspirador.db   # Banco de dados SQLite para armazenamento dos preços
 
 🛡️ Aviso Legal
 
-Este programa foi desenvolvido apenas para fins educacionais. O scraping de sites pode violar os Termos de Serviço das plataformas. Certifique-se de obter permissão antes de utilizá-lo em produção.
+    Este programa foi desenvolvido apenas para fins educacionais. O scraping de sites pode violar os Termos de Serviço das plataformas. Certifique-se de obter permissão antes de        utilizá-lo em produção.
 
 📧 Contato
 
-Se tiver dúvidas ou sugestões, sinta-se à vontade para entrar em contato:
+    Se tiver dúvidas ou sugestões, sinta-se à vontade para entrar em contato:
 
     Email: benutte20@gmail.com
