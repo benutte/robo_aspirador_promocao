@@ -62,7 +62,7 @@ def save_to_database(conn, produto_info):
 
 def get_max_price(conn):
      cursor = conn.cursor()
-     cursor.execute("SELECT old_price, timestamp FROM prices ORDER BY timestamp DESC LIMIT 1")
+     cursor.execute("SELECT old_price, timestamp FROM prices ORDER BY timestamp ASC LIMIT 1")
      result =cursor.fetchone()
      if result and result[0] is not None:
         return result[0], result[1]
@@ -78,26 +78,32 @@ async def main():
     max_price, max_price_timestamp = get_max_price(conn)
     try:
                              
-            while True:
-                page_content = fetch_page()
-                produto_info = parse_page(page_content)
-                current_price = produto_info['old_price']
+        while True:
+            page_content = fetch_page()
+            produto_info = parse_page(page_content)
+            current_price = produto_info['old_price']
                 
-                # Comparação de preços
-                if max_price is None or current_price > max_price:
-                        message = f"Novo preço maior detectado: {current_price}"
-                        print(message)
-                        await send_telegram_message(message)
-                        max_price = current_price
-                        max_price_timestamp = produto_info['timestamp']
-                else:
-                        message = f"O maior preço registrado é {max_price} em {max_price_timestamp}"
-                        print(message)
-                        await send_telegram_message(message)
+            # Comparação de preços
+            if max_price is None or current_price > max_price:
+                message = (
+                    f"Novo preço maior detectado: {current_price}\n"
+                    f"Anterior maior preço: {max_price if max_price else 'N/A'} em {max_price_timestamp if max_price_timestamp else 'N/A'}"
+                )
+                print(message)
+                await send_telegram_message(message)
+                max_price = current_price
+                max_price_timestamp = produto_info['timestamp']
+            else:
+                message = (
+                    f"O maior preço registrado é {max_price} em {max_price_timestamp}\n"
+                    f"Preço atual: {current_price}"
+                )
+                print(message)
+                await send_telegram_message(message)
 
-                save_to_database(conn, produto_info)
-                #print("Dados salvos no banco:", produto_info)
-                await asyncio.sleep(10)
+            save_to_database(conn, produto_info)
+            #print("Dados salvos no banco:", produto_info)
+            await asyncio.sleep(10)
 
     except KeyboardInterrupt:
         print("Parando a execução...")
